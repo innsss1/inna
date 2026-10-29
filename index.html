@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кофейня на углу</title>
+<style>
+:root{--bg:#fbf3e4;--card:#fffaf0;--ink:#3b2a1d;--muted:#7a6451;--accent:#6f4a2e;--accent-ink:#fff;--line:#e6d5bb;--good:#3f7d4e;--warn:#b3472f;--gold:#e0a82e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1611;--card:#2a1f18;--ink:#f3e6d3;--muted:#b9a58f;--accent:#c98f5a;--accent-ink:#20150d;--line:#43332a;--good:#7fc08e;--warn:#e98a72;--gold:#f0c45a}}
+:root[data-theme="dark"]{--bg:#1f1611;--card:#2a1f18;--ink:#f3e6d3;--muted:#b9a58f;--accent:#c98f5a;--accent-ink:#20150d;--line:#43332a;--good:#7fc08e;--warn:#e98a72;--gold:#f0c45a}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.4}
+.wrap{max-width:1000px;margin:0 auto;padding:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.05rem;margin:0 0 8px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.chip b{display:block;font-size:1.25rem}.chip span{font-size:.75rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:8px 12px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.main{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cup{position:relative;text-align:center;padding-top:34px}
+.steam{position:absolute;top:0;left:50%;transform:translateX(-50%);display:flex;gap:14px;height:40px;pointer-events:none}
+.steam i{width:7px;height:26px;border-radius:50%;background:linear-gradient(var(--muted),transparent);opacity:0;animation:rise 3s infinite ease-out}
+.steam i:nth-child(2){animation-delay:1s}.steam i:nth-child(3){animation-delay:2s}
+@keyframes rise{0%{transform:translateY(24px) scaleX(1);opacity:0}30%{opacity:.5}100%{transform:translateY(-6px) scaleX(1.8);opacity:0}}
+#brew{width:100%;font-size:1.3rem;padding:18px;border-radius:16px}
+#brew:active{transform:scale(.98)}#brew small{display:block;font-size:.8rem;opacity:.85}
+.row{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.row span{font-size:.85rem;color:var(--muted)}.row button{flex:1}
+.muted{color:var(--muted);font-size:.85rem;margin-top:10px}
+#buffs{font-size:.85rem;margin-top:8px;min-height:1.2em;color:var(--good)}
+#rush,#fix{display:block;width:100%;margin-top:8px;font-weight:bold}
+#rush{background:var(--gold);color:#2a1a08;animation:pulse .7s infinite alternate}
+#fix{background:var(--warn);color:#fff;border-color:var(--warn)}
+@keyframes pulse{to{transform:scale(1.03)}}
+[hidden]{display:none!important}
+.up{display:flex;gap:10px;align-items:center;width:100%;text-align:left;margin-bottom:6px}
+.up .em{font-size:1.5rem}.up .tx{flex:1}.up small{display:block;color:var(--muted)}
+.up .cost{font-size:.85rem;white-space:nowrap}.lv{font-style:normal;color:var(--muted);font-weight:normal}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+footer{text-align:center;margin:14px 0 6px}footer button{font-size:.8rem;color:var(--muted)}
+#toast{position:fixed;left:0;right:0;bottom:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));text-align:center;pointer-events:none;opacity:0;transition:opacity .3s}
+#toast.on{opacity:1}#toast span{background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:999px;display:inline-block;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>☕ Кофейня на углу</h1><div class="pill" id="phase"></div></header>
+<section class="res">
+<div class="chip"><b id="rCups"></b><span>☕ Чашки</span></div>
+<div class="chip"><b id="rBeans"></b><span>🫘 Зёрна</span></div>
+<div class="chip"><b id="rCoins"></b><span>💰 Монеты</span></div>
+<div class="chip"><b id="rRep"></b><span>⭐ Репутация</span></div>
+<div class="chip"><b id="rBrand"></b><span>🏆 Бренд</span></div>
+</section>
+<div class="grid">
+<section class="card">
+<div class="cup"><div class="steam"><i></i><i></i><i></i></div>
+<button id="brew" class="main">☕ Сварить кофе<small id="brewSub"></small></button></div>
+<div class="row"><span>Закупить зёрна (1 💰 за штуку):</span></div>
+<div class="row"><button data-b="10">×10</button><button data-b="100">×100</button><button data-b="1000">×1000</button></div>
+<button id="rush" hidden>🚶 Час пик! Жми скорее!</button>
+<button id="fix" hidden>🔧 Кофемашина сломалась. Починить</button>
+<div id="buffs"></div>
+<div class="muted" id="stats"></div>
+</section>
+<section class="card"><h2>Улучшения</h2><div id="ups"></div></section>
+<section class="card">
+<h2>🏪 Новые точки</h2><div class="muted" id="locInfo" style="margin:0 0 8px"></div><button id="locBtn" class="main" style="width:100%"></button>
+<hr>
+<h2>🏆 Франшиза</h2><div class="muted" id="frInfo" style="margin:0 0 8px"></div><button id="frBtn" class="main" style="width:100%"></button>
+</section>
+</div>
+<footer><button id="reset">Сбросить прогресс</button></footer>
+</div>
+<div id="toast"><span id="toastTx"></span></div>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='corner-cafe-v1';
+const UPS=[
+{id:'machine',e:'⚙️',n:'Кофемашина',d:'+1 чашка за клик',c:30},
+{id:'barista',e:'🧑‍🍳',n:'Бариста',d:'варит 0,5 чашки/сек',c:60},
+{id:'cashier',e:'🧾',n:'Кассир',d:'+1 продажа/сек',c:100},
+{id:'showcase',e:'🥐',n:'Витрина',d:'+15% к цене чашки',c:150},
+{id:'regulars',e:'🫶',n:'Постоянные клиенты',d:'+0,5 монеты/сек',c:250},
+{id:'supplier',e:'🚚',n:'Поставщик',d:'сам докупает зёрна',c:400}
+];
+const PH=[
+{e:'🌅',n:'Утро',note:'эспрессо в спросе, продажи ×1,3',sell:1.3,price:1},
+{e:'☀️',n:'День',note:'обычный спрос',sell:1,price:1},
+{e:'🌆',n:'Вечер',note:'десерты, цена ×1,3',sell:1,price:1.3},
+{e:'🌙',n:'Ночь',note:'затишье, продажи ×0,6',sell:.6,price:1}
+];
+const sfx=['','K','M','B','T','Qa','Qi'];
+function fmt(n){if(n<1000)return n<10&&n%1?n.toFixed(1):String(Math.floor(n));const i=Math.min(Math.floor(Math.log10(n)/3),6);return (n/1000**i).toFixed(2)+sfx[i];}
+const fresh=()=>({cups:0,beans:20,coins:10,rep:0,brand:0,loc:1,run:0,clock:0,broken:false,saved:Date.now(),up:{machine:0,barista:0,cashier:0,showcase:0,regulars:0,supplier:0}});
+let S=fresh();
+let ev={rush:0,blog:0,offer:0,next:40};
+
+// ---------- формулы ----------
+const brandM=()=>1+.25*S.brand;
+const phase=()=>PH[Math.floor(S.clock/60)%4];
+const price=()=>3*(1+.15*S.up.showcase)*phase().price*brandM()*(1+.01*S.rep);
+const clickPow=()=>(1+S.up.machine)*(S.broken?.3:1);
+const brewRate=()=>S.up.barista*.5*S.loc*(S.broken?.3:1);
+const sellRate=()=>(1+S.up.cashier)*S.loc*phase().sell*(ev.rush>0?5:1);
+const upCost=u=>Math.ceil(u.c*1.15**S.up[u.id]);
+const locCost=()=>500*5**(S.loc-1);
+const locRep=()=>10*S.loc;
+const frGain=()=>Math.floor(Math.sqrt(S.run/25000));
+
+// ---------- игровой цикл ----------
+function step(dt){
+  S.clock+=dt;
+  ev.rush=Math.max(0,ev.rush-dt);ev.blog=Math.max(0,ev.blog-dt);ev.offer=Math.max(0,ev.offer-dt);
+  ev.next-=dt;if(ev.next<=0){spawn();ev.next=45+Math.random()*45;}
+  const U=S.up;
+  if(U.supplier){const n=Math.min(25*U.supplier-S.beans,S.coins,U.supplier*5*dt);if(n>0){S.beans+=n;S.coins-=n;}}
+  const made=Math.min(brewRate()*dt,S.beans);S.beans-=made;S.cups+=made;
+  const sold=Math.min(sellRate()*dt,S.cups);S.cups-=sold;
+  const earn=sold*price()+U.regulars*.5*brandM()*dt;
+  S.coins+=earn;S.run+=earn;
+  S.rep+=sold*.02*(ev.blog>0?3:1);
+}
+function away(sec){
+  sec=Math.min(sec,14400);const before=S.coins;
+  const made=Math.min(S.up.barista*.5*S.loc*sec,S.beans);S.beans-=made;S.cups+=made;
+  const sold=Math.min((1+S.up.cashier)*S.loc*sec*.5,S.cups);S.cups-=sold;
+  const earn=(sold*price()+S.up.regulars*.5*brandM()*sec*.5);
+  S.coins+=earn;S.run+=earn;S.rep+=sold*.02;
+  return S.coins-before;
+}
+function spawn(){
+  const r=Math.random();
+  if(r<.45){ev.offer=12;toast('🚶 Толпа у входа!');}
+  else if(r<.75||S.broken){ev.blog=30;toast('📸 Блогер зашёл: репутация растёт ×3 на 30 сек');}
+  else{S.broken=true;toast('🔧 Сломалась кофемашина!');}
+}
+
+// ---------- действия ----------
+$('brew').onclick=()=>{
+  const n=Math.min(clickPow(),S.beans);
+  if(n<=0){toast('Закончились зёрна! Закупите 🫘');return;}
+  S.beans-=n;S.cups+=n;
+};
+document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{
+  const n=+b.dataset.b;if(S.coins>=n){S.coins-=n;S.beans+=n;}
+});
+$('rush').onclick=()=>{ev.offer=0;ev.rush=20;toast('Час пик! Продажи ×5 на 20 секунд');};
+$('fix').onclick=()=>{S.broken=false;toast('Кофемашина снова работает');};
+$('locBtn').onclick=()=>{
+  if(S.coins>=locCost()&&S.rep>=locRep()){S.coins-=locCost();S.loc++;toast('Открыта точка №'+S.loc+' 🏪');}
+};
+$('frBtn').onclick=()=>{
+  const g=frGain();if(g<1)return;
+  S={...fresh(),brand:S.brand+g,clock:S.clock};ev={rush:0,blog:0,offer:0,next:40};
+  toast('Франшиза продана! +'+g+' 🏆, доход ×'+brandM().toFixed(2));save();
+};
+let resetArmed=0;
+$('reset').onclick=()=>{
+  if(!resetArmed){resetArmed=1;$('reset').textContent='Точно сбросить? Нажмите ещё раз';setTimeout(()=>{resetArmed=0;$('reset').textContent='Сбросить прогресс';},4000);return;}
+  S=fresh();ev={rush:0,blog:0,offer:0,next:40};resetArmed=0;$('reset').textContent='Сбросить прогресс';save();
+};
+
+// ---------- интерфейс ----------
+const upEls={};
+UPS.forEach(u=>{
+  const b=document.createElement('button');b.className='up';
+  b.innerHTML=`<span class="em">${u.e}</span><span class="tx"><b>${u.n} <em class="lv"></em></b><small>${u.d}</small></span><span class="cost"></span>`;
+  b.onclick=()=>{const c=upCost(u);if(S.coins>=c){S.coins-=c;S.up[u.id]++;}};
+  $('ups').append(b);upEls[u.id]=b;
+});
+let toastT;
+function toast(t){$('toastTx').textContent=t;$('toast').classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('on'),3500);}
+function ui(){
+  const ph=phase(),left=Math.ceil(60-S.clock%60);
+  $('phase').textContent=`${ph.e} ${ph.n} · ${ph.note} · ${left}с`;
+  $('rCups').textContent=fmt(S.cups);$('rBeans').textContent=fmt(S.beans);$('rCoins').textContent=fmt(S.coins);
+  $('rRep').textContent=fmt(S.rep);$('rBrand').textContent=S.brand;
+  $('brewSub').textContent=`+${fmt(clickPow())} чашек за клик (тратит зёрна)`;
+  document.querySelectorAll('[data-b]').forEach(b=>b.disabled=S.coins<+b.dataset.b);
+  $('rush').hidden=ev.offer<=0;$('fix').hidden=!S.broken;
+  const buffs=[];if(ev.rush>0)buffs.push(`🚶 Час пик ×5 · ${Math.ceil(ev.rush)}с`);if(ev.blog>0)buffs.push(`📸 Блогер, репутация ×3 · ${Math.ceil(ev.blog)}с`);
+  $('buffs').textContent=buffs.join('   ');
+  $('stats').innerHTML=`Варим: ${fmt(brewRate())}/сек · Продаём до: ${fmt(sellRate())}/сек<br>Цена чашки: ${price().toFixed(2)} 💰 · Бонус репутации: +${Math.floor(S.rep)}%`;
+  UPS.forEach(u=>{
+    const b=upEls[u.id],c=upCost(u);
+    b.querySelector('.lv').textContent='×'+S.up[u.id];
+    b.querySelector('.cost').textContent='💰 '+fmt(c);b.disabled=S.coins<c;
+  });
+  $('locInfo').textContent=`Точек: ${S.loc}. Каждая точка умножает варку и продажи. Следующая: 💰 ${fmt(locCost())} и ⭐ ${locRep()} репутации.`;
+  $('locBtn').textContent='Открыть точку №'+(S.loc+1);
+  $('locBtn').disabled=S.coins<locCost()||S.rep<locRep();
+  const g=frGain();
+  $('frInfo').textContent=`Бренд-очки дают постоянный множитель дохода (сейчас ×${brandM().toFixed(2)}). Продажа бизнеса сбрасывает всё остальное. Заработано за забег: ${fmt(S.run)}.`;
+  $('frBtn').textContent=g>=1?`Открыть франшизу: +${g} 🏆`:'Нужно заработать 25K за забег';
+  $('frBtn').disabled=g<1;
+}
+
+// ---------- сохранение ----------
+function save(){try{S.saved=Date.now();localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){
+  try{
+    const r=localStorage.getItem(KEY);if(!r)return;
+    const o=JSON.parse(r);S=Object.assign(fresh(),o);S.up=Object.assign(fresh().up,o.up||{});
+    const sec=(Date.now()-S.saved)/1000;
+    if(sec>30){const g=away(sec);if(g>0)toast('Пока вас не было: +'+fmt(g)+' 💰');}
+  }catch(e){}
+}
+load();
+let last=Date.now(),lastSave=Date.now();
+setInterval(()=>{
+  const now=Date.now(),dt=(now-last)/1000;last=now;
+  if(dt>5){const g=away(dt);if(g>0)toast('Пока вас не было: +'+fmt(g)+' 💰');}else step(dt);
+  if(now-lastSave>10000){save();lastSave=now;}
+  ui();
+},100);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+window.addEventListener('beforeunload',save);
+ui();
+</script>
+</body>
+</html>
